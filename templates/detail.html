@@ -1,0 +1,200 @@
+   <!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <meta property="og:title" content="개발새발" />
+        <meta property="og:description" content="개발자들을 위한 세미나 정보를 한눈에! 개발새발" />
+        <meta property="og:image" content="http://rose-quartz.store/static/image/logo-title.png" />
+
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script src="http://code.jquery.com/jquery-latest.min.js"></script>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+        crossorigin="anonymous"></script>
+
+        <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+        <link href="../static/stayle/header.css" rel="stylesheet">
+        <link href="../static/stayle/view.css" rel="stylesheet">
+    <title>개발새발</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        /*내 URL값 가져오는 스크립트 > 를 split으로 잘라서 썼습니다*/
+        let url_num =document.location.href.split("/")[4];
+
+        /*코멘트를 등록*/
+        function check_comment(){
+
+            let link = url_num;
+            let name = $('#name').val()
+            let star = $('#star').val()
+            let comment = $('#comment').val()
+
+        if(name === ''){
+            alert('닉네임을 입력해주세요.')
+        }else if (star === ''){
+            alert('별점을 선택해주세요.')
+        }else if(comment === '') {
+            alert('댓글 내용을 입력해주세요.')
+        }else{
+
+        $.ajax({
+            type: 'POST',
+            url: '/detail',
+            data: { link_give:link, name_give:name, grade_give:star, comment_give:comment},
+            success: function (response) {
+                alert(response['msg'])
+                window.location.reload()
+                }
+            });
+            }
+        }
+
+        /*화면이 로드되면 제일 먼저 코멘트와 정보들을 보여줌*/
+         $(document).ready(function (){
+               show_comment();
+               show_info();
+            });
+
+        /*코멘트를 보여주고 HTML을 APPEND하는 스크립트*/
+         function show_comment() {
+            $.ajax({
+                type: "GET",
+                url: "/detail",
+                data: {},
+                success: function (response) {
+                    let rows = response['comments']
+
+                    for (let i = 0; i < rows.length; i++) {
+                        let link = rows[i]['link']
+                        let name = rows[i]['name']
+                        let comment = rows[i]['comment']
+                        let star = rows[i]['grade']
+                        let star_image = '⭐'.repeat(star)
+
+                        if (url_num === link) {
+                            let temp_html = `<div class="list-group-item list-group-item-action" aria-current="true">
+                                                <div class="d-flex w-100 justify-content-between">
+                                                  <h5>${name}</h5>
+                                                  <small>${star_image}</small>
+                                                </div>
+                                                <p class="mb-1">${comment}</p>
+                                           </div>`
+
+                            $("#comment_list").append(temp_html)
+                        }
+                    }
+                }
+            });
+        }
+
+        /*데이터로 저장되어있는 세미나 정보를 가져옴*/
+        function show_info(){
+             $.ajax({
+                type: "GET",
+                url: "/info",
+                data: {},
+                 success: function (response) {
+                    let rows = response['seminar']
+                     for (let i = 0; i < rows.length; i++) {
+                        let link = rows[i]['link']
+                        let title = rows[i]['title']
+                        let time = rows[i]['time']
+                        let place = rows[i]['place']
+                        let image = rows[i]['image']
+
+                     if(url_num === link) {
+                         let temp_img = `
+                             <img src=https://${image}>
+                         `
+                         let temp_title = `
+                             <h1>${title}</h1>
+                         `
+                          let temp_time = `
+                             <p class="info-cont">${time}</p>
+                         `
+                         let temp_place = `
+                             <p class="info-cont">${place}</p>
+                         `
+                         $("#img-area").append(temp_img)
+                         $("#title").append(temp_title)
+                         $("#time").append(temp_time)
+                         $("#place").append(temp_place)
+                     }
+                 }
+                }
+             });
+        }
+
+        function connect(){
+             let web_link = 'https://www.sharedit.co.kr/seminars/'+url_num;
+             window.location.href = web_link
+        }
+
+    </script>
+</head>
+<body>
+    <div class="header">
+        <a href="../index"><img src="../static/image/logo-title.png"></a>
+    </div>
+    <div class="wrap">
+        <div class="content">
+            <div class="title">
+                <p id="title"></p>
+                <button type="button" onclick="connect()" class="btn btn-dark">세미나 신청하기</button>
+            </div> <!--title-->
+            <div class="container-wrap">
+            <div class="left-cont">
+                <div class="img-area" id="img-area">
+
+                </div><!--img-area-->
+                <div class="info-area">
+                    <div class="info_row">
+                         <span class="info-title">일시</span>
+                           <div class="info" id ="time"></div>
+                    </div>
+                    <div class="info_row">
+                         <span class="info-title">장소</span>
+                        <div class="info" id="place"></div>
+                    </div>
+                </div><!--info-area-->
+            </div> <!--left-cont-->
+            <div class="right-cont">
+                <div class="input-wrap">
+                    <div class="input-group mb-3 short-input" >
+                        <input id="name" type="text" class="form-control" placeholder="닉네임을 입력해주세요." aria-label="Username"
+                               aria-describedby="basic-addon1">
+                    </div><!--input-group-->
+                    <div class="input-group mb-3 short-input">
+                        <label class="input-group-text" >별점</label>
+                        <select class="form-select" id="star">
+                            <option selected value="">-- ⭐별점 선택하기⭐ --</option>
+                            <option value="1">⭐</option>
+                            <option value="2">⭐⭐</option>
+                            <option value="3">⭐⭐⭐</option>
+                            <option value="4">⭐⭐⭐⭐</option>
+                            <option value="5">⭐⭐⭐⭐⭐</option>
+                        </select>
+                    </div> <!--input-group mb-3-->
+                </div>
+                <div class="input-group mb-3 wide-input">
+                    <input id="comment" type="text" class="form-control" placeholder="코멘트를 입력해주세요" aria-label="Username"
+                           aria-describedby="basic-addon1">
+                    <button onclick="check_comment()" type="button" class="btn btn-dark">댓글 등록</button>
+                </div><!--input-group-->
+                <div class="comment-wrap" id="comment_list">
+
+                </div><!--comment-wrap-->
+            </div><!--right-cont-->
+            </div><!--container-->
+        </div><!--content-->
+    </div> <!--wrap-->
+
+
+</body>
+</html>
